@@ -3,14 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-
-// Basic type definitions
-typedef unsigned char uint8_t;
-typedef unsigned short uint16_t;
-typedef unsigned int uint32_t;
-typedef char int8_t;
-typedef short int16_t;
-typedef int int32_t;
+#include <stddef.h>
 
 // Kernel constants
 #define KERNEL_VERSION "1.0.0"
@@ -33,6 +26,15 @@ typedef int int32_t;
 void kernel_main(void);
 void load_applications(void);
 void kernel_panic(const char* message);
+
+// Initialization functions
+void memory_init(void);
+void process_init(void);
+void interrupts_init(void);
+
+// App registration
+typedef int (*app_entry_t)(void);
+void app_register(const char* name, app_entry_t entry);
 
 // Application prototypes
 int file_manager_main(void);
