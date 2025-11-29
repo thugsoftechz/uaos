@@ -1,149 +1,121 @@
-#include "../kernel/kernel.h"
-#include "../gui/gui.h"
 #include "apps.h"
 
-#define MAX_FILES 50
-#define MAX_FILENAME 32
-
 struct file_entry {
-    char name[MAX_FILENAME];
-    uint32_t size;
-    bool is_directory;
+    char name[32];
+    bool is_dir;
+    int size;
 };
 
-static struct file_entry files[MAX_FILES];
+static struct file_entry files[10];
 static int file_count = 0;
 static int selected_file = 0;
-static char current_path[256] = "/";
+static char current_path[64] = "/";
 
 int file_manager_main(void) {
+    gui_create_window("UFileX - Delete Everything?", 2, 2, 40, 20);
     file_manager_scan_directory(current_path);
     file_manager_draw_interface();
-    
     return 0;
 }
 
 void file_manager_scan_directory(const char* path) {
-    // Simulate directory listing
+    (void)path; // Mock implementation
+
     file_count = 0;
-    
-    // Add parent directory entry
-    strcpy(files[file_count].name, "..");
-    files[file_count].is_directory = true;
-    files[file_count].size = 0;
+
+    strcpy(files[0].name, "..");
+    files[0].is_dir = true;
     file_count++;
-    
-    // Add some sample files and directories
-    strcpy(files[file_count].name, "Documents");
-    files[file_count].is_directory = true;
-    files[file_count].size = 0;
+
+    strcpy(files[1].name, "system32");
+    files[1].is_dir = true;
     file_count++;
-    
-    strcpy(files[file_count].name, "Pictures");
-    files[file_count].is_directory = true;
-    files[file_count].size = 0;
+
+    strcpy(files[2].name, "passwords.txt");
+    files[2].is_dir = false;
+    files[2].size = 123;
     file_count++;
-    
-    strcpy(files[file_count].name, "readme.txt");
-    files[file_count].is_directory = false;
-    files[file_count].size = 1024;
-    file_count++;
-    
-    strcpy(files[file_count].name, "config.sys");
-    files[file_count].is_directory = false;
-    files[file_count].size = 512;
-    file_count++;
-    
-    strcpy(files[file_count].name, "boot.bin");
-    files[file_count].is_directory = false;
-    files[file_count].size = 8192;
+
+    strcpy(files[3].name, "virus.exe");
+    files[3].is_dir = false;
+    files[3].size = 666;
     file_count++;
 }
 
 void file_manager_draw_interface(void) {
-    // Clear window content area
     int window_id = gui_get_active_window();
     if (window_id == -1) return;
-    
+
     struct window* win = gui_get_window(window_id);
-    
-    // Draw header
-    gui_draw_text(win->x + 5, win->y + 25, "UFileX - File Manager", 0x00);
-    gui_draw_text(win->x + 5, win->y + 35, current_path, 0x08);
-    
-    // Draw file list
-    for (int i = 0; i < file_count && i < 10; i++) {
-        int y_pos = win->y + 50 + i * 12;
-        uint8_t color = (i == selected_file) ? 0x70 : 0x00; // Highlight selected
-        
-        // Draw selection background
-        if (i == selected_file) {
-            vga_draw_rect(win->x + 5, y_pos - 2, win->width - 10, 12, 0x70);
-        }
-        
-        // Draw file icon and name
-        char display_line[64];
-        if (files[i].is_directory) {
-            sprintf(display_line, "[DIR]  %s", files[i].name);
+
+    // Path
+    char path_str[64];
+    sprintf(path_str, "Path: %s", current_path);
+    gui_draw_text(win->x + 2, win->y + 2, path_str, VGA_COLOR_WHITE);
+
+    // List
+    for (int i = 0; i < file_count; i++) {
+        uint8_t color = (i == selected_file) ? VGA_COLOR_YELLOW : VGA_COLOR_LIGHT_GREY;
+
+        char line[40];
+        if (files[i].is_dir) {
+            sprintf(line, "[DIR] %s", files[i].name);
         } else {
-            sprintf(display_line, "[FILE] %s (%d bytes)", files[i].name, files[i].size);
+            sprintf(line, "      %s (%d B)", files[i].name, files[i].size);
         }
-        
-        gui_draw_text(win->x + 8, y_pos, display_line, color);
+
+        gui_draw_text(win->x + 2, win->y + 4 + i, line, color);
     }
-    
-    // Draw status bar
-    gui_draw_text(win->x + 5, win->y + win->height - 15, "F1:Open F2:Copy F3:Delete ESC:Exit", 0x08);
+
+    // Help
+    gui_draw_text(win->x + 2, win->y + 15, "[Ent] Open  [Del] Destroy", VGA_COLOR_CYAN);
+}
+
+void file_manager_open_selected(void) {
+    if (files[selected_file].is_dir) {
+        if (strcmp(files[selected_file].name, "..") == 0) {
+            strcpy(current_path, "/"); // Simple mock
+        } else {
+            // Mock entering dir
+            gui_show_message("UFileX", "Access Denied. You are not root, pleb.");
+        }
+    } else {
+        gui_show_message("UFileX", "Cannot open file. Format unknown (and I don't care).");
+    }
+}
+
+void file_manager_copy_file(void) {
+    gui_show_message("UFileX", "Copy failed. Drive full of bloat.");
+}
+
+void file_manager_delete_file(void) {
+    if (strcmp(files[selected_file].name, "system32") == 0) {
+        gui_show_message("UFileX", "Deleting System32... Just kidding, I wish.");
+    } else {
+        gui_show_message("UFileX", "File deleted. Gone forever.");
+        // Mock delete
+    }
+}
+
+void file_manager_go_up_directory(void) {
+    strcpy(current_path, "/");
 }
 
 void file_manager_handle_key(uint8_t key) {
     switch (key) {
         case KEY_UP:
-            if (selected_file > 0) {
-                selected_file--;
-                file_manager_draw_interface();
-            }
+            if (selected_file > 0) selected_file--;
+            file_manager_draw_interface();
             break;
-            
         case KEY_DOWN:
-            if (selected_file < file_count - 1) {
-                selected_file++;
-                file_manager_draw_interface();
-            }
+            if (selected_file < file_count - 1) selected_file++;
+            file_manager_draw_interface();
             break;
-            
         case KEY_ENTER:
             file_manager_open_selected();
             break;
-            
-        case KEY_F2:
-            file_manager_copy_file();
-            break;
-            
-        case KEY_F3:
+        case KEY_S: // Used as delete key here for simplicity
             file_manager_delete_file();
             break;
-    }
-}
-
-void file_manager_open_selected(void) {
-    if (selected_file >= 0 && selected_file < file_count) {
-        if (files[selected_file].is_directory) {
-            // Change directory
-            if (strcmp(files[selected_file].name, "..") == 0) {
-                // Go up one directory
-                file_manager_go_up_directory();
-            } else {
-                // Enter directory
-                strcat(current_path, files[selected_file].name);
-                strcat(current_path, "/");
-            }
-            file_manager_scan_directory(current_path);
-            selected_file = 0;
-            file_manager_draw_interface();
-        } else {
-            // Open file (placeholder - would launch appropriate viewer)
-            gui_show_message("File opened: ", files[selected_file].name);
-        }
     }
 }
