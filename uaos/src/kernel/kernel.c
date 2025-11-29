@@ -1,4 +1,4 @@
-#include "kernel.h"
+#include "../kernel/kernel.h"
 #include "../drivers/vga.h"
 #include "../drivers/keyboard.h"
 #include "../gui/gui.h"
@@ -13,41 +13,46 @@ struct kernel_state {
 void kernel_main(void) {
     // Initialize VGA display
     vga_init();
-    vga_clear_screen(VGA_COLOR_BLACK);
-    
+    vga_clear_screen(VGA_COLOR_BLUE); // BSOD style background
+
+    // Rude Boot Messages
     vga_print("UAOS v1.0 - Ultimate Aslil Operating System\n", VGA_COLOR_WHITE);
-    vga_print("Kernel loaded successfully!\n", VGA_COLOR_GREEN);
-    
+    vga_print("------------------------------------------\n", VGA_COLOR_WHITE);
+    vga_print("Booting this garbage... ugh.\n", VGA_COLOR_LIGHT_GREY);
+
     // Initialize memory management
     memory_init();
-    vga_print("Memory manager initialized\n", VGA_COLOR_CYAN);
-    
+    vga_print("Memory wasted successfully.\n", VGA_COLOR_LIGHT_GREY);
+
     // Initialize process management
     process_init();
-    vga_print("Process manager initialized\n", VGA_COLOR_CYAN);
-    
+    vga_print("Process manager broke something probably.\n", VGA_COLOR_LIGHT_GREY);
+
     // Initialize interrupts
     interrupts_init();
-    vga_print("Interrupt handlers installed\n", VGA_COLOR_CYAN);
-    
+    vga_print("Interrupts enabled (so you can interrupt me).\n", VGA_COLOR_LIGHT_GREY);
+
     // Initialize keyboard driver
     keyboard_init();
-    vga_print("Keyboard driver loaded\n", VGA_COLOR_CYAN);
-    
+    vga_print("Keyboard detected. Don't smash it.\n", VGA_COLOR_LIGHT_GREY);
+
     // Initialize GUI system
     gui_init();
     kernel.gui_initialized = true;
-    vga_print("GUI system initialized\n", VGA_COLOR_CYAN);
-    
+    vga_print("Fake GUI initialized. It looks terrible.\n", VGA_COLOR_LIGHT_GREY);
+
     // Load core applications
     load_applications();
-    vga_print("Core applications loaded\n", VGA_COLOR_CYAN);
-    
-    vga_print("\nStarting desktop environment...\n", VGA_COLOR_YELLOW);
-    
+    vga_print("Bloatware loaded.\n", VGA_COLOR_LIGHT_GREY);
+
+    vga_print("\nStarting the worst desktop environment ever...\n", VGA_COLOR_YELLOW);
+
+    // Small delay loop simulation
+    for(volatile int i=0; i<1000000; i++);
+
     // Start GUI main loop
     gui_main_loop();
-    
+
     // Should never reach here
     while(1) {
         asm("hlt");
